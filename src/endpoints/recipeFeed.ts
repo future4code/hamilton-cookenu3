@@ -5,28 +5,21 @@ import { CookenuUser } from '../Database/CookenuUser';
 import { Database } from "../Database/Database";
 import { CookenuFollow } from "../Database/CookenuFollow";
 
-export const getFeed = async (req: Request, res: Response): Promise<void> => {
+export const recipeFeed = async (req: Request, res: Response) => {
     try{
-        const token = req.headers.authorization as string;
-
-        const authenticator = new Authenticator();
-        const authenticationData = authenticator.getData(token)
-
-        if(authenticationData.role !== "admin"){
-            throw new Error("Não tem acesso.");
-        }
-
-        const recipe = new Recipe();
-        const feed = await recipe.getFeed();
-
+        const token = req.headers.authorization as string        
+        const authenticator = new Authenticator()
+        const userData = authenticator.getData(token)        
+        const recipe = new Recipe()
+        const feed = await recipe.getFeed(userData.id)        
+        
         res.status(200).send({
             recipes: feed
-        })
-    }catch(error){
+        })    
+    
+    }catch(err){
         res.status(400).send({
-            message: error.message
+            message: err.message
         })
     }
-    
-    await Database.destroyConnection();
 }
