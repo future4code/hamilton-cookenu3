@@ -5,29 +5,28 @@ import { CookenuUser } from '../Database/CookenuUser';
 import { Database } from "../Database/Database";
 import { CookenuFollow } from "../Database/CookenuFollow";
 
-export const recipeFeed = async (req: Request, res: Response) => {
+export const getFeed = async (req: Request, res: Response): Promise<void> => {
     try{
         const token = req.headers.authorization as string;
 
         const authenticator = new Authenticator();
-        const userData = authenticator.getData(token);
+        const authenticationData = authenticator.getData(token)
 
-        if(userData.role !== "correto"){
-            throw new Error("Não pode acessar.")
+        if(authenticationData.role !== "admin"){
+            throw new Error("Não tem acesso.");
         }
 
-        const ckFollow = new CookenuFollow();
-        const teste_Id = await ckFollow.getAllCookenuFollow()
-        
-        const recipeBase = new Recipe();
-        const feed = await recipeBase.getAllRecipes(teste_Id)
+        const recipe = new Recipe();
+        const feed = await recipe.getFeed();
 
         res.status(200).send({
-            message: feed
+            recipes: feed
         })
     }catch(error){
         res.status(400).send({
             message: error.message
         })
     }
+    
+    await Database.destroyConnection();
 }
